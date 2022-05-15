@@ -31,6 +31,7 @@ def solve_lin_problem(grads, ksis, A, x):
 def find_alpha(fs, x, s, ksis, eta, _lambda):
     alpha = 1
     x_next = x + alpha * s
+    check = [f(x_next) for f in fs[1:]]
     while not (fs[0](x_next) <= fs[0](x) + 0.5 * ksis[0] * eta * alpha and all([f(x_next) <= 0 for f in fs[1:]])):
         alpha *= _lambda
         x_next = x + alpha * s
@@ -39,9 +40,9 @@ def find_alpha(fs, x, s, ksis, eta, _lambda):
 
 
 def find_start_x(fs, grads, A, b):
-    new_fs = [lambda x: f(x[1:]) - x[0] for f in fs[1:]]
+    new_fs = [lambda x, f=f: f(x[1:]) - x[0] for f in fs[1:]]
     new_fs.insert(0, lambda x: x[0])
-    new_grads = [lambda x: np.insert(grad(x[1:]), 0, -1) for grad in grads[1:]]
+    new_grads = [lambda x, grad=grad: np.insert(grad(x[1:]), 0, -1) for grad in grads[1:]]
     grad0 = np.zeros(len(A[0]) + 1)
     grad0[0] = 1
     new_grads.insert(0, lambda x: grad0)
@@ -74,7 +75,7 @@ def solve(fs, grads, A, b, x0=None, find_x0=False):
     while True:
         iter_n += 1
         trace.append(x)
-        if iter_n >= 100:
+        if iter_n >= 200:
             print('Max iter limit!')
             break
         aai = [i for i, f in enumerate(fs) if i == 0 or -delta < f(x)]  # almost active constraints
@@ -85,7 +86,7 @@ def solve(fs, grads, A, b, x0=None, find_x0=False):
         elif eta < 0:
             delta *= _lambda
 
-        if eta < 0 and find_x0:
+        if x[0] < 0 and find_x0:
             break
 
         pass_indexes = [i for i in range(len(fs)) if i not in aai]
