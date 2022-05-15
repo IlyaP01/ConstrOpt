@@ -31,7 +31,6 @@ def solve_lin_problem(grads, ksis, A, x):
 def find_alpha(fs, x, s, ksis, eta, _lambda):
     alpha = 1
     x_next = x + alpha * s
-    check = [f(x_next) for f in fs[1:]]
     while not (fs[0](x_next) <= fs[0](x) + 0.5 * ksis[0] * eta * alpha and all([f(x_next) <= 0 for f in fs[1:]])):
         alpha *= _lambda
         x_next = x + alpha * s
@@ -86,7 +85,7 @@ def solve(fs, grads, A, b, x0=None, find_x0=False):
         elif eta < 0:
             delta *= _lambda
 
-        if x[0] < 0 and find_x0:
+        if find_x0 and x[0] < 0:
             break
 
         pass_indexes = [i for i in range(len(fs)) if i not in aai]
